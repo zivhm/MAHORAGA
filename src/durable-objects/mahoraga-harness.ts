@@ -1443,8 +1443,16 @@ JSON response:
 
     try {
       const alpaca = createAlpacaProviders(this.env);
-      const quote = await alpaca.marketData.getQuote(symbol).catch(() => null);
-      const price = quote?.ask_price || quote?.bid_price || 0;
+      const isCrypto = symbol.includes("/");
+      let price = 0;
+
+      if (isCrypto) {
+        const snapshot = await alpaca.marketData.getCryptoSnapshot(symbol).catch(() => null);
+        price = snapshot?.latest_trade?.price || 0;
+      } else {
+        const quote = await alpaca.marketData.getQuote(symbol).catch(() => null);
+        price = quote?.ask_price || quote?.bid_price || 0;
+      }
 
       const prompt = `Should we BUY this stock based on social sentiment and fundamentals?
 
